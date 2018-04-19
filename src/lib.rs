@@ -1,6 +1,6 @@
-//! HAL for the STM32F30x family of microcontrollers
+//! HAL for the STM32F401xE family of microcontrollers
 //!
-//! This is an implementation of the [`embedded-hal`] traits for the STM32F30x family of
+//! This is an implementation of the [`embedded-hal`] traits for the STM32F401xE family of
 //! microcontrollers.
 //!
 //! [`embedded-hal`]: https://github.com/japaric/embedded-hal
@@ -28,7 +28,7 @@ extern crate cast;
 extern crate cortex_m;
 extern crate embedded_hal as hal;
 extern crate nb;
-pub extern crate stm32f30x;
+pub extern crate stm32f401xe;
 
 pub mod delay;
 pub mod flash;

@@ -4,7 +4,7 @@ use core::ptr;
 
 use hal::spi::{FullDuplex, Mode, Phase, Polarity};
 use nb;
-use stm32f30x::{SPI1, SPI2, SPI3};
+use stm32f401xe::{SPI1, SPI2, SPI3};
 
 use gpio::gpioa::{PA5, PA6, PA7};
 use gpio::gpiob::{PB13, PB14, PB15, PB5};
@@ -22,7 +22,8 @@ pub enum Error {
     ModeFault,
     /// CRC error
     Crc,
-    #[doc(hidden)] _Extensible,
+    #[doc(hidden)]
+    _Extensible,
 }
 
 // FIXME these should be "closed" traits

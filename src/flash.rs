@@ -1,6 +1,6 @@
 //! Flash memory
 
-use stm32f30x::{flash, FLASH};
+use stm32f401xe::{flash, FLASH};
 
 /// Extension trait to constrain the FLASH peripheral
 pub trait FlashExt {

@@ -1,7 +1,7 @@
 //! Inter-Integrated Circuit (I2C) bus
 
 use cast::u8;
-use stm32f30x::{I2C1, I2C2};
+use stm32f401xe::{I2C1, I2C2};
 
 use gpio::gpioa::{PA10, PA9};
 use gpio::gpiob::{PB6, PB7, PB8, PB9};
@@ -22,7 +22,8 @@ pub enum Error {
     // Pec, // SMBUS mode only
     // Timeout, // SMBUS mode only
     // Alert, // SMBUS mode only
-    #[doc(hidden)] _Extensible,
+    #[doc(hidden)]
+    _Extensible,
 }
 
 // FIXME these should be "closed" traits
@@ -68,7 +69,7 @@ macro_rules! busy_wait {
                 // try again
             }
         }
-    }
+    };
 }
 
 macro_rules! hal {

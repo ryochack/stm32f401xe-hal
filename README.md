@@ -1,10 +1,8 @@
-# `stm32f30x-hal`
+# `stm32f401xe-hal`
 
-> HAL for the STM32F30x family of microcontrollers
+> HAL for the STM32F401xE family of microcontrollers
 
 [`embedded-hal`]: https://crates.io/crates/embedded-hal
-
-## [Documentation](https://docs.rs/stm32f30x-hal)
 
 ## License
 

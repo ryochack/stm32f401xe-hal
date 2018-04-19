@@ -1,11 +1,11 @@
 //! Serial
 
-use core::ptr;
 use core::marker::PhantomData;
+use core::ptr;
 
 use hal::serial;
 use nb;
-use stm32f30x::{USART1, USART2, USART3};
+use stm32f401xe::{USART1, USART2, USART3};
 
 use gpio::gpioa::{PA10, PA2, PA3, PA9};
 use gpio::gpiob::{PB10, PB11, PB6, PB7};
@@ -35,7 +35,8 @@ pub enum Error {
     Overrun,
     /// Parity check error
     Parity,
-    #[doc(hidden)] _Extensible,
+    #[doc(hidden)]
+    _Extensible,
 }
 
 // FIXME these should be "closed" traits

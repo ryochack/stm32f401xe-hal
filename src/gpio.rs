@@ -95,7 +95,7 @@ macro_rules! gpio {
             use core::marker::PhantomData;
 
             use hal::digital::OutputPin;
-            use stm32f30x::{$gpioy, $GPIOX};
+            use stm32f401xe::{$gpioy, $GPIOX};
 
             use rcc::AHB;
             use super::{
