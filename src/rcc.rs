@@ -1,11 +1,13 @@
 //! Reset and Clock Control
 
-use core::cmp;
+#![allow(dead_code)]
 
-use cast::u32;
+// use core::cmp;
+
+// use cast::u32;
 use stm32f401xe::{rcc, RCC};
 
-use flash::ACR;
+// use flash::ACR;
 use time::Hertz;
 
 /// Extension trait that constrains the `RCC` peripheral
@@ -17,7 +19,8 @@ pub trait RccExt {
 impl RccExt for RCC {
     fn constrain(self) -> Rcc {
         Rcc {
-            ahb: AHB { _0: () },
+            ahb1: AHB1 { _0: () },
+            ahb2: AHB2 { _0: () },
             apb1: APB1 { _0: () },
             apb2: APB2 { _0: () },
             cfgr: CFGR {
@@ -32,8 +35,10 @@ impl RccExt for RCC {
 
 /// Constrained RCC peripheral
 pub struct Rcc {
-    /// AMBA High-performance Bus (AHB) registers
-    pub ahb: AHB,
+    /// AMBA High-performance Bus 1 (AHB1) registers
+    pub ahb1: AHB1,
+    /// AMBA High-performance Bus 2 (AHB2) registers
+    pub ahb2: AHB2,
     /// Advanced Peripheral Bus 1 (APB1) registers
     pub apb1: APB1,
     /// Advanced Peripheral Bus 2 (APB2) registers
@@ -42,20 +47,37 @@ pub struct Rcc {
     pub cfgr: CFGR,
 }
 
-/// AMBA High-performance Bus (AHB) registers
-pub struct AHB {
+/// AMBA High-performance Bus 1 (AHB1) registers
+pub struct AHB1 {
     _0: (),
 }
 
-impl AHB {
-    pub(crate) fn enr(&mut self) -> &rcc::AHBENR {
+impl AHB1 {
+    pub(crate) fn enr(&mut self) -> &rcc::AHB1ENR {
         // NOTE(unsafe) this proxy grants exclusive access to this register
-        unsafe { &(*RCC::ptr()).ahbenr }
+        unsafe { &(*RCC::ptr()).ahb1enr }
     }
 
-    pub(crate) fn rstr(&mut self) -> &rcc::AHBRSTR {
+    pub(crate) fn rstr(&mut self) -> &rcc::AHB1RSTR {
         // NOTE(unsafe) this proxy grants exclusive access to this register
-        unsafe { &(*RCC::ptr()).ahbrstr }
+        unsafe { &(*RCC::ptr()).ahb1rstr }
+    }
+}
+
+/// AMBA High-performance Bus 2 (AHB2) registers
+pub struct AHB2 {
+    _0: (),
+}
+
+impl AHB2 {
+    pub(crate) fn enr(&mut self) -> &rcc::AHB2ENR {
+        // NOTE(unsafe) this proxy grants exclusive access to this register
+        unsafe { &(*RCC::ptr()).ahb2enr }
+    }
+
+    pub(crate) fn rstr(&mut self) -> &rcc::AHB2RSTR {
+        // NOTE(unsafe) this proxy grants exclusive access to this register
+        unsafe { &(*RCC::ptr()).ahb2rstr }
     }
 }
 
@@ -140,130 +162,130 @@ impl CFGR {
         self
     }
 
-    /// Freezes the clock configuration, making it effective
-    pub fn freeze(self, acr: &mut ACR) -> Clocks {
-        let pllmul = (2 * self.sysclk.unwrap_or(HSI)) / HSI;
-        let pllmul = cmp::min(cmp::max(pllmul, 2), 16);
-        let pllmul_bits = if pllmul == 2 {
-            None
-        } else {
-            Some(pllmul as u8 - 2)
-        };
+    // /// Freezes the clock configuration, making it effective
+    // pub fn freeze(self, acr: &mut ACR) -> Clocks {
+    //     let pllmul = (2 * self.sysclk.unwrap_or(HSI)) / HSI;
+    //     let pllmul = cmp::min(cmp::max(pllmul, 2), 16);
+    //     let pllmul_bits = if pllmul == 2 {
+    //         None
+    //     } else {
+    //         Some(pllmul as u8 - 2)
+    //     };
 
-        let sysclk = pllmul * HSI / 2;
+    //     let sysclk = pllmul * HSI / 2;
 
-        assert!(sysclk <= 72_000_000);
+    //     assert!(sysclk <= 72_000_000);
 
-        let hpre_bits = self.hclk
-            .map(|hclk| match sysclk / hclk {
-                0 => unreachable!(),
-                1 => 0b0111,
-                2 => 0b1000,
-                3...5 => 0b1001,
-                6...11 => 0b1010,
-                12...39 => 0b1011,
-                40...95 => 0b1100,
-                96...191 => 0b1101,
-                192...383 => 0b1110,
-                _ => 0b1111,
-            })
-            .unwrap_or(0b0111);
+    //     let hpre_bits = self.hclk
+    //         .map(|hclk| match sysclk / hclk {
+    //             0 => unreachable!(),
+    //             1 => 0b0111,
+    //             2 => 0b1000,
+    //             3...5 => 0b1001,
+    //             6...11 => 0b1010,
+    //             12...39 => 0b1011,
+    //             40...95 => 0b1100,
+    //             96...191 => 0b1101,
+    //             192...383 => 0b1110,
+    //             _ => 0b1111,
+    //         })
+    //         .unwrap_or(0b0111);
 
-        let hclk = sysclk / (1 << (hpre_bits - 0b0111));
+    //     let hclk = sysclk / (1 << (hpre_bits - 0b0111));
 
-        assert!(hclk <= 72_000_000);
+    //     assert!(hclk <= 72_000_000);
 
-        let ppre1_bits = self.pclk1
-            .map(|pclk1| match hclk / pclk1 {
-                0 => unreachable!(),
-                1 => 0b011,
-                2 => 0b100,
-                3...5 => 0b101,
-                6...11 => 0b110,
-                _ => 0b111,
-            })
-            .unwrap_or(0b011);
+    //     let ppre1_bits = self.pclk1
+    //         .map(|pclk1| match hclk / pclk1 {
+    //             0 => unreachable!(),
+    //             1 => 0b011,
+    //             2 => 0b100,
+    //             3...5 => 0b101,
+    //             6...11 => 0b110,
+    //             _ => 0b111,
+    //         })
+    //         .unwrap_or(0b011);
 
-        let ppre1 = 1 << (ppre1_bits - 0b011);
-        let pclk1 = hclk / u32(ppre1);
+    //     let ppre1 = 1 << (ppre1_bits - 0b011);
+    //     let pclk1 = hclk / u32(ppre1);
 
-        assert!(pclk1 <= 36_000_000);
+    //     assert!(pclk1 <= 36_000_000);
 
-        let ppre2_bits = self.pclk2
-            .map(|pclk2| match hclk / pclk2 {
-                0 => unreachable!(),
-                1 => 0b011,
-                2 => 0b100,
-                3...5 => 0b101,
-                6...11 => 0b110,
-                _ => 0b111,
-            })
-            .unwrap_or(0b011);
+    //     let ppre2_bits = self.pclk2
+    //         .map(|pclk2| match hclk / pclk2 {
+    //             0 => unreachable!(),
+    //             1 => 0b011,
+    //             2 => 0b100,
+    //             3...5 => 0b101,
+    //             6...11 => 0b110,
+    //             _ => 0b111,
+    //         })
+    //         .unwrap_or(0b011);
 
-        let ppre2 = 1 << (ppre2_bits - 0b011);
-        let pclk2 = hclk / u32(ppre2);
+    //     let ppre2 = 1 << (ppre2_bits - 0b011);
+    //     let pclk2 = hclk / u32(ppre2);
 
-        assert!(pclk2 <= 72_000_000);
+    //     assert!(pclk2 <= 72_000_000);
 
-        // adjust flash wait states
-        unsafe {
-            acr.acr().write(|w| {
-                w.latency().bits(if sysclk <= 24_000_000 {
-                    0b000
-                } else if sysclk <= 48_000_000 {
-                    0b001
-                } else {
-                    0b010
-                })
-            })
-        }
+    //     // adjust flash wait states
+    //     unsafe {
+    //         acr.acr().write(|w| {
+    //             w.latency().bits(if sysclk <= 24_000_000 {
+    //                 0b000
+    //             } else if sysclk <= 48_000_000 {
+    //                 0b001
+    //             } else {
+    //                 0b010
+    //             })
+    //         })
+    //     }
 
-        let rcc = unsafe { &*RCC::ptr() };
-        if let Some(pllmul_bits) = pllmul_bits {
-            // use PLL as source
+    //     let rcc = unsafe { &*RCC::ptr() };
+    //     if let Some(pllmul_bits) = pllmul_bits {
+    //         // use PLL as source
 
-            rcc.cfgr.write(|w| unsafe { w.pllmul().bits(pllmul_bits) });
+    //         rcc.cfgr.write(|w| unsafe { w.pllmul().bits(pllmul_bits) });
 
-            rcc.cr.write(|w| w.pllon().set_bit());
+    //         rcc.cr.write(|w| w.pllon().set_bit());
 
-            while rcc.cr.read().pllrdy().bit_is_clear() {}
+    //         while rcc.cr.read().pllrdy().bit_is_clear() {}
 
-            // SW: PLL selected as system clock
-            rcc.cfgr.modify(|_, w| unsafe {
-                w.ppre2()
-                    .bits(ppre2_bits)
-                    .ppre1()
-                    .bits(ppre1_bits)
-                    .hpre()
-                    .bits(hpre_bits)
-                    .sw()
-                    .bits(0b10)
-            });
-        } else {
-            // use HSI as source
+    //         // SW: PLL selected as system clock
+    //         rcc.cfgr.modify(|_, w| unsafe {
+    //             w.ppre2()
+    //                 .bits(ppre2_bits)
+    //                 .ppre1()
+    //                 .bits(ppre1_bits)
+    //                 .hpre()
+    //                 .bits(hpre_bits)
+    //                 .sw()
+    //                 .bits(0b10)
+    //         });
+    //     } else {
+    //         // use HSI as source
 
-            // SW: HSI selected as system clock
-            rcc.cfgr.write(|w| unsafe {
-                w.ppre2()
-                    .bits(ppre2_bits)
-                    .ppre1()
-                    .bits(ppre1_bits)
-                    .hpre()
-                    .bits(hpre_bits)
-                    .sw()
-                    .bits(0b00)
-            });
-        }
+    //         // SW: HSI selected as system clock
+    //         rcc.cfgr.write(|w| unsafe {
+    //             w.ppre2()
+    //                 .bits(ppre2_bits)
+    //                 .ppre1()
+    //                 .bits(ppre1_bits)
+    //                 .hpre()
+    //                 .bits(hpre_bits)
+    //                 .sw()
+    //                 .bits(0b00)
+    //         });
+    //     }
 
-        Clocks {
-            hclk: Hertz(hclk),
-            pclk1: Hertz(pclk1),
-            pclk2: Hertz(pclk2),
-            ppre1,
-            ppre2,
-            sysclk: Hertz(sysclk),
-        }
-    }
+    //     Clocks {
+    //         hclk: Hertz(hclk),
+    //         pclk1: Hertz(pclk1),
+    //         pclk2: Hertz(pclk2),
+    //         ppre1,
+    //         ppre2,
+    //         sysclk: Hertz(sysclk),
+    //     }
+    // }
 }
 
 /// Frozen clock frequencies
